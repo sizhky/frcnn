@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch import optim
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
-from pathlib2 import Path
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from torchvision import transforms
 
