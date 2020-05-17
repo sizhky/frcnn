@@ -38,7 +38,7 @@ class Timer:
 
     def __call__(self, ix):
         elapsed = time.time() - self.start
-        print('{}/{} ({:.2f}s - {:.2f}s remaining)'.format(ix+1, self.N, elapsed, (self.N-ix)*(elapsed/(ix+1))), end='\r')
+        print('\r{}/{} ({:.2f}s - {:.2f}s remaining)'.format(ix+1, self.N, elapsed, (self.N-ix)*(elapsed/(ix+1))), end='')
 
 line = lambda N=66: print('='*N)
 def see(*X, N=66): list(map(lambda x: print('='*N+'\n{}'.format(x)), X))+[print('='*N)]
