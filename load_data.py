@@ -5,6 +5,7 @@ from torch import optim
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
+from loguru import logger
 import xml.etree.ElementTree as ET
 from torchvision import transforms
 
