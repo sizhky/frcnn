@@ -1,4 +1,9 @@
 from PIL import Image
+import torch
+import torch.nn as nn
+from torch import optim
+from torch.nn import functional as F
+from torch.utils.data import Dataset, DataLoader
 import xml.etree.ElementTree as ET
 from torchvision import transforms
 
