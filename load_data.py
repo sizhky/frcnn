@@ -102,56 +102,6 @@ class VOCDataset(Dataset):
             image, bbs = augment_image_with_bbs(image, bbs, self.tfms)
         return Image.fromarray(image), bbs, clss, difficulties
     def sample(self): return choose(self)
-    def collate_fn(self, batch):
-        images = list()
-        boxes = list()
-        labels = list()
-        difficulties = list()
-
-        for _image, _boxes, _labels, _difficulties in batch:
-            _image = self.normalize(self.to_tensor(_image))
-            _boxes = torch.FloatTensor(_boxes)/300.
-            _labels = torch.LongTensor(_labels)
-            _difficulties = torch.ByteTensor(_difficulties)
-            images.append(_image)
-            boxes.append(_boxes)
-            labels.append(_labels)
-            difficulties.append(_difficulties)
-
-        images = torch.stack(images, dim=0)
-        return images, boxes, labels, difficulties
-
-    def collate_fn_yoloV1(self, batch):
-    	images, boxes, labels, difficulties = self.collate_fn(batch)
-    	targets = [self.encoder(image_boxes, image_labels)[None] for image_boxes, image_labels in zip(boxes, labels)]
-    	targets = torch.cat(targets)
-    	return images, targets
-
-    def encoder(self,boxes,labels):
-        '''
-        boxes (tensor) [[x1,y1,x2,y2],[]]
-        labels (tensor) [...]
-        return 7x7x30
-        '''
-        grid_num = 10
-        target = torch.zeros((grid_num,grid_num,30))
-        cell_size = 1./grid_num
-        wh = boxes[:,2:]-boxes[:,:2]
-        cxcy = (boxes[:,2:]+boxes[:,:2])/2
-
-        for i in range(cxcy.size()[0]):
-            cxcy_sample = cxcy[i]
-            ij = (cxcy_sample/cell_size).ceil()-1 #
-            target[int(ij[1]),int(ij[0]),4] = 1
-            target[int(ij[1]),int(ij[0]),9] = 1
-            target[int(ij[1]),int(ij[0]),int(labels[i])+9] = 1
-            xy = ij*cell_size #匹配到的网格的左上角相对坐标
-            delta_xy = (cxcy_sample -xy)/cell_size
-            target[int(ij[1]),int(ij[0]),2:4] = wh[i]
-            target[int(ij[1]),int(ij[0]),:2] = delta_xy
-            target[int(ij[1]),int(ij[0]),7:9] = wh[i]
-            target[int(ij[1]),int(ij[0]),5:7] = delta_xy
-        return target
 
 if __name__ == '__main__':
     from pathlib import Path
