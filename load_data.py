@@ -1,4 +1,3 @@
-from snippets.loader import *
 from PIL import Image
 import xml.etree.ElementTree as ET
 from torchvision import transforms
