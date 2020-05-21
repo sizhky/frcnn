@@ -107,7 +107,9 @@ class VOCDataset(Dataset):
         	clss = [clss[ix] for ix in keep_ixs]
         if self.tfms is not None:
             image, bbs = augment_image_with_bbs(image, bbs, self.tfms)
-        return Image.fromarray(image), bbs, clss, difficulties, image_path
+        return {'image': Image.fromarray(image), 'bbs': bbs, 
+                'classes': clss, 'difficulties': difficulties, 
+                'image_path': image_path}
     def sample(self): return choose(self)
 
 if __name__ == '__main__':
@@ -119,5 +121,6 @@ if __name__ == '__main__':
     logger.info(f'\n{len(train_items)} training images\n{len(val_items)} validation images')
     x = VOCDataset(train_items, tfms=aug_trn)
     np.random.seed(12)
-    im, bbs, clss = x.sample()
-    show(im, bbs=bbs, texts=map(lambda label:voc_labels[label-1], clss), sz=5, text_sz=10)
+    datum = x.sample()
+    im, bbs, clss = datum['image'], datum['bbs'], datum['classes']
+    show(im, bbs=bbs, texts=clss, sz=5, text_sz=10)
