@@ -100,14 +100,14 @@ class VOCDataset(Dataset):
         annot = parse_annotation(annot_path)
         bbs = annot['boxes']
         difficulties = annot['difficulties']
-        clss = [l for l in annot['labels']]
+        clss = [label_map[l] for l in annot['labels']]
         if self.objects:
         	keep_ixs = [ix for ix,cls in enumerate(clss) if cls in self._objects]
         	bbs = [bbs[ix] for ix in keep_ixs]
         	clss = [clss[ix] for ix in keep_ixs]
         if self.tfms is not None:
             image, bbs = augment_image_with_bbs(image, bbs, self.tfms)
-        return Image.fromarray(image), bbs, clss, difficulties
+        return Image.fromarray(image), bbs, clss, difficulties, image_path
     def sample(self): return choose(self)
 
 if __name__ == '__main__':
