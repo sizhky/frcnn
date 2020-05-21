@@ -8,7 +8,9 @@ import numpy as np
 from pathlib import Path
 from loguru import logger
 import xml.etree.ElementTree as ET
+from collections import namedtuple
 from torchvision import transforms
+from torch_snippets.loader import *
 
 device = 'cuda'
 voc_labels = ('aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
@@ -82,6 +84,7 @@ def augment_image_with_bbs(image, bbs, aug_func):
     bbs = [(np.clip(x,0,w), np.clip(y,0,h), np.clip(X,0,w), np.clip(Y,0,h)) for x,y,X,Y in bbs]
     return im, bbs
 
+datum = namedtuple("vocDatum", 'image,bbs,clss,difficulties,fpath'.split(','))
 class VOCDataset(Dataset):
     to_tensor = transforms.ToTensor()
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -100,16 +103,14 @@ class VOCDataset(Dataset):
         annot = parse_annotation(annot_path)
         bbs = annot['boxes']
         difficulties = annot['difficulties']
-        clss = [label_map[l] for l in annot['labels']]
+        clss = [rev_label_map[l] for l in annot['labels']]
         if self.objects:
         	keep_ixs = [ix for ix,cls in enumerate(clss) if cls in self._objects]
         	bbs = [bbs[ix] for ix in keep_ixs]
         	clss = [clss[ix] for ix in keep_ixs]
         if self.tfms is not None:
             image, bbs = augment_image_with_bbs(image, bbs, self.tfms)
-        return {'image': Image.fromarray(image), 'bbs': bbs, 
-                'classes': clss, 'difficulties': difficulties, 
-                'image_path': image_path}
+        return datum(Image.fromarray(image), bbs, clss, difficulties, image_path)
     def sample(self): return choose(self)
 
 if __name__ == '__main__':
@@ -121,6 +122,5 @@ if __name__ == '__main__':
     logger.info(f'\n{len(train_items)} training images\n{len(val_items)} validation images')
     x = VOCDataset(train_items, tfms=aug_trn)
     np.random.seed(12)
-    datum = x.sample()
-    im, bbs, clss = datum['image'], datum['bbs'], datum['classes']
+    im, bbs, clss, *_ = x.sample()
     show(im, bbs=bbs, texts=clss, sz=5, text_sz=10)
